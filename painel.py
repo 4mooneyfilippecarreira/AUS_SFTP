@@ -9,10 +9,10 @@ import paramiko
 from cryptography.fernet import Fernet
 
 # --- CONFIGURAÇÕES --- #
-USER_DATABASE = ['filippe.carreira@4mooney.com', 'enivaldo.carvalho@4mooney.com']
-FERNET_KEY = b'-h0QueWj1Yzu0vN1CBFjRadhU2hwSI4e8xLzK-HLtpc='
-SFTP_HOST = '34.74.50.215'
-SFTP_PORT = 2222
+FERNET_KEY = os.environ["FERNET_KEY"].encode()
+SFTP_HOST = os.environ["SFTP_HOST"]
+SFTP_PORT = int(os.environ.get("SFTP_PORT", 22))
+USER_DATABASE = os.environ["USERS"].split(",")
 
 
 # --- FUNÇÕES --- #
