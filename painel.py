@@ -12,7 +12,7 @@ from cryptography.fernet import Fernet
 FERNET_KEY = os.environ["FERNET_KEY"].encode()
 SFTP_HOST = os.environ["SFTP_HOST"]
 SFTP_PORT = int(os.environ.get("SFTP_PORT", 22))
-USER_DATABASE = os.environ["USERS"].split(",")
+USER_DATABASE = os.environ["USER_DATABASE"].replace(" ", "").split(",")
 
 
 # --- FUNÇÕES --- #
