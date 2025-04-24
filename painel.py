@@ -133,7 +133,7 @@ with st.sidebar:
         exp_time = datetime.datetime.fromisoformat(
             f_decrypt_token(st.session_state.token)["expiration_date"]
         ).strftime("%H:%M:%S")
-        st.markdown(f"### ⏳ Expira às {exp_time}")
+        st.markdown(f"### ⏳ Expira às {exp_time - datetime.timedelta(hours=3)}")
         st.code(st.session_state.token, language="text")
 
     st.markdown("---")
