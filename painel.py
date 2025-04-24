@@ -20,7 +20,6 @@ USER_DATABASE = (st.secrets["USER_DATABASE"] if "USER_DATABASE" in st.secrets el
     " ", "").split(",")
 TOKEN_EXPIRATION_SECONDS = 30
 
-# Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -62,7 +61,7 @@ def f_encrypt_file(data: bytes) -> bytes:
 def sftp_login_test(username: str, password: str) -> bool:
     try:
         with paramiko.Transport((SFTP_HOST, SFTP_PORT)) as transport:
-            transport.connect(timeout=30, username=username, password=password)
+            transport.connect(username=username, password=password)
         return True
     except paramiko.AuthenticationException:
         logger.warning("Falha na autenticação SFTP")
@@ -120,6 +119,9 @@ with st.sidebar:
             st.error("⛔ Formato de e-mail inválido.")
         elif user not in USER_DATABASE:
             st.error("⛔ Usuário não autorizado.")
+        elif not sftp_login_test(user, secret):
+            st.error("🔐 Usuário ou senha inválidos para o SFTP.")
+            logger.warning(f"Autenticação SFTP falhou para {user}")
         else:
             expiration = (datetime.datetime.now() + datetime.timedelta(seconds=TOKEN_EXPIRATION_SECONDS)).isoformat()
             token_data = {'user': user, 'secret': secret, 'expiration_date': expiration}
