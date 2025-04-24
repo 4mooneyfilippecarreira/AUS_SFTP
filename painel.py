@@ -7,7 +7,8 @@ import ast
 import time
 import paramiko
 from cryptography.fernet import Fernet
-
+import io
+import zipfile
 
 # --- CONFIGURAÇÕES --- #
 FERNET_KEY = os.environ["FERNET_KEY"].encode()
