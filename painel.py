@@ -7,7 +7,7 @@ import ast
 import time
 import paramiko
 from cryptography.fernet import Fernet
-import py7zr
+
 
 # --- CONFIGURAÇÕES --- #
 FERNET_KEY = os.environ["FERNET_KEY"].encode()
@@ -127,26 +127,23 @@ if enviar:
             file_bytes = arquivo.read()
             md5_hash = hashlib.md5(file_bytes).hexdigest()
 
-            # Compactação para .7z
-            status_area.info("📦 Compactando o arquivo com 7-Zip (LZMA2)...")
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".7z") as temp_7z:
-                with py7zr.SevenZipFile(temp_7z.name, 'w') as archive:
-                    archive.writestr(arquivo.name, file_bytes)
-                temp_7z_path = temp_7z.name
+            # Compactação para .zip
+            status_area.info("📦 Compactando o arquivo (.zip)...")
+            zip_buffer = io.BytesIO()
+            with zipfile.ZipFile(zip_buffer, mode='w', compression=zipfile.ZIP_DEFLATED) as zf:
+                zf.writestr(arquivo.name, file_bytes)
+            zip_buffer.seek(0)
+            compressed_bytes = zip_buffer.read()
 
             progress_bar.progress(30)
 
-            # Leitura do arquivo .7z compactado
-            with open(temp_7z_path, 'rb') as f:
-                compressed_bytes = f.read()
-
-            # Criptografia do arquivo compactado
+            # Criptografia do arquivo zipado
             status_area.info("🔐 Criptografando o arquivo compactado...")
             encrypted_file = f_encrypt_file(compressed_bytes)
 
-            # Nome do arquivo final
+            # Nome final criptografado
             nome_criptografado = gerar_nome_criptografado(arquivo.name, md5_hash)
-            nome_criptografado = nome_criptografado.replace(".fernet", ".7z.fernet")
+            nome_criptografado = nome_criptografado.replace(".fernet", ".zip.fernet")
 
 
             progress_bar.progress(40)
