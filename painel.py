@@ -130,10 +130,10 @@ with st.sidebar:
             logger.info(f"Token gerado para usuário: {user}")
 
     if st.session_state.token:
-        exp_time = datetime.datetime.fromisoformat(
-            f_decrypt_token(st.session_state.token)["expiration_date"]
-        ).strftime("%H:%M:%S")
-        st.markdown(f"### ⏳ Expira às {exp_time - datetime.timedelta(hours=3)}")
+        exp_utc = datetime.datetime.fromisoformat(f_decrypt_token(st.session_state.token)["expiration_date"])
+        exp_brasilia = exp_utc - datetime.timedelta(hours=3)
+        exp_time = exp_brasilia.strftime("%H:%M:%S")
+        st.markdown(f"### ⏳ Expira às {exp_time}")
         st.code(st.session_state.token, language="text")
 
     st.markdown("---")
