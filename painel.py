@@ -102,7 +102,7 @@ def compactar_para_zip(nome_arquivo: str, dados: bytes) -> bytes:
 
 
 # --- STREAMLIT INTERFACE --- #
-st.set_page_config(page_title="Upload Seguro via SFTP", layout="wide", page_icon="🔐")
+st.set_page_config(page_title="Upload Seguro criptografado", layout="wide", page_icon="🔐")
 
 if "token" not in st.session_state:
     st.session_state.token = None
@@ -141,6 +141,7 @@ with st.sidebar:
     arquivo = st.file_uploader("📁 Selecione o arquivo para envio")
     enviar = st.button("Enviar com Segurança")
 
+st.title('H.Y.P.E.R.sec SYSTEM v2.1')
 st.markdown("## 🛡️ Status do Envio")
 status_area = st.empty()
 progress_bar = st.progress(0)
