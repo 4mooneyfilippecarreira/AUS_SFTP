@@ -140,8 +140,8 @@ with st.sidebar:
     secret = st.text_input("Senha de Acesso", type="password", key="senha")
 
 valid_email = validate_email(user)
-auth_user = valid_email and user in USER_DATABASE
-sftp_ok = auth_user and sftp_login_test(user, secret)
+sftp_ok = valid_email and user in USER_DATABASE and sftp_login_test(user, secret)
+auth_user = sftp_ok
 
 # Geração automática de token
 if auth_user and sftp_ok:
