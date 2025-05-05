@@ -19,8 +19,15 @@ from typing import Dict, Union
 st.set_page_config(page_title="HYPERsec | Upload Seguro", layout="wide", page_icon="🔒")
 st.markdown("""
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+        html, body, [class*="css"] {
+            font-family: 'Roboto', sans-serif;
+        }
+
         body { background-color: #0F1117; color: #E0E0E0; }
         .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+
         .stButton>button {
             background-color: #1F2937;
             color: #FFFFFF;
@@ -29,20 +36,27 @@ st.markdown("""
             padding: 0.5em 1em;
             border: none;
         }
+
         .stTextInput>div>input, .stPasswordInput>div>input {
             background-color: #1E1E1E;
             color: #FFFFFF;
         }
-        .stFileUploader>label { color: #D1D5DB; }
+
+        .stFileUploader>label {
+            color: #D1D5DB;
+        }
+
         .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
             color: #00BFFF;
         }
+
         code, pre {
             background-color: #1A1A1A;
             color: #00FF7F;
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 # === CONFIGURAÇÕES === #
 FERNET_KEY = st.secrets["FERNET_KEY"].encode() if "FERNET_KEY" in st.secrets else os.environ["FERNET_KEY"].encode()
