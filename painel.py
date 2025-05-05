@@ -1,29 +1,60 @@
-# Estrutura proposta:
-# - config.py
-# - security.py
-# - sftp_utils.py
-# - ui.py
-# - main.py
+# painel.py (versão única consolidada e com indicadores de autenticação)
 
-# === config.py ===
-import os
 import streamlit as st
+import zipfile
+import hashlib
+import os
+import tempfile
+import datetime
+import ast
+import paramiko
+from cryptography.fernet import Fernet
+import io
+import re
+import logging
+from typing import Dict, Union
 
+# === ESTILO PROFISSIONAL === #
+st.set_page_config(page_title="HYPERsec | Upload Seguro", layout="wide", page_icon="🔒")
+st.markdown("""
+    <style>
+        body { background-color: #0F1117; color: #E0E0E0; }
+        .block-container { padding-top: 2rem; padding-bottom: 2rem; }
+        .stButton>button {
+            background-color: #1F2937;
+            color: #FFFFFF;
+            font-weight: bold;
+            border-radius: 8px;
+            padding: 0.5em 1em;
+            border: none;
+        }
+        .stTextInput>div>input, .stPasswordInput>div>input {
+            background-color: #1E1E1E;
+            color: #FFFFFF;
+        }
+        .stFileUploader>label { color: #D1D5DB; }
+        .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+            color: #00BFFF;
+        }
+        code, pre {
+            background-color: #1A1A1A;
+            color: #00FF7F;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# === CONFIGURAÇÕES === #
 FERNET_KEY = st.secrets["FERNET_KEY"].encode() if "FERNET_KEY" in st.secrets else os.environ["FERNET_KEY"].encode()
 SFTP_HOST = st.secrets["SFTP_HOST"] if "SFTP_HOST" in st.secrets else os.environ["SFTP_HOST"]
 SFTP_PORT = int(st.secrets["SFTP_PORT"]) if "SFTP_PORT" in st.secrets else int(os.environ.get("SFTP_PORT", 22))
 USER_DATABASE = (st.secrets["USER_DATABASE"] if "USER_DATABASE" in st.secrets else os.environ["USER_DATABASE"]).replace(" ", "").split(",")
 TOKEN_EXPIRATION_SECONDS = 30
 
-# === security.py ===
-import re, ast, datetime
-from cryptography.fernet import Fernet
-from typing import Dict, Union
-from config import FERNET_KEY
-import logging
-
+# === LOGGING === #
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
+# === SEGURANÇA === #
 cipher = Fernet(FERNET_KEY)
 
 def sanitize_filename(filename: str) -> str:
@@ -60,13 +91,7 @@ def token_expirado(token: str) -> bool:
         return True
     return datetime.datetime.fromisoformat(d["expiration_date"]) <= datetime.datetime.utcnow()
 
-# === sftp_utils.py ===
-import paramiko
-import logging
-from config import SFTP_HOST, SFTP_PORT
-
-logger = logging.getLogger(__name__)
-
+# === SFTP === #
 def sftp_login_test(username: str, password: str) -> bool:
     try:
         with paramiko.Transport((SFTP_HOST, SFTP_PORT)) as transport:
@@ -90,77 +115,45 @@ def sftp_fileupload(username: str, password: str, local_path: str, remote_path: 
         logger.error(f"Erro ao enviar via SFTP: {str(e)}")
         return False
 
-# === ui.py ===
-import streamlit as st
-
-def setup_style():
-    st.set_page_config(page_title="HYPERsec | Upload Seguro", layout="wide", page_icon="🔒")
-    st.markdown("""
-    <style>
-        body { background-color: #0F1117; color: #E0E0E0; }
-        .block-container { padding-top: 2rem; padding-bottom: 2rem; }
-        .stButton>button {
-            background-color: #1F2937;
-            color: #FFFFFF;
-            font-weight: bold;
-            border-radius: 8px;
-            padding: 0.5em 1em;
-            border: none;
-        }
-        .stTextInput>div>input, .stPasswordInput>div>input {
-            background-color: #1E1E1E;
-            color: #FFFFFF;
-        }
-        .stFileUploader>label { color: #D1D5DB; }
-        .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
-            color: #00BFFF;
-        }
-        code, pre {
-            background-color: #1A1A1A;
-            color: #00FF7F;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
-# === main.py ===
-import streamlit as st
-import hashlib, tempfile, os, datetime, io, zipfile
-from security import *
-from sftp_utils import *
-from config import TOKEN_EXPIRATION_SECONDS, USER_DATABASE
-from ui import setup_style
-
-setup_style()
-
+# === INTERFACE === #
 st.title("HYPERsec SYSTEM")
 st.markdown("### Sistema de Transmissão Segura com Criptografia de Arquivos")
 
 with st.sidebar:
     st.markdown("## Autenticação")
-    user = st.text_input("Usuário (e-mail)")
-    secret = st.text_input("Senha de Acesso", type="password")
+    user = st.text_input("Usuário (e-mail)", key="usuario")
+    secret = st.text_input("Senha de Acesso", type="password", key="senha")
 
-    if st.button("Gerar Token de Sessão"):
-        if not user or not secret:
-            st.warning("Preencha usuário e senha.")
-        elif not validate_email(user):
-            st.error("Formato de e-mail inválido.")
-        elif user not in USER_DATABASE:
-            st.error("Usuário não autorizado.")
-        elif not sftp_login_test(user, secret):
-            st.error("Credenciais inválidas no SFTP.")
-        else:
-            st.session_state.token = gerar_token(user, secret, TOKEN_EXPIRATION_SECONDS)
+valid_email = validate_email(user)
+auth_user = valid_email and user in USER_DATABASE
+sftp_ok = auth_user and sftp_login_test(user, secret)
 
-    if st.session_state.get("token"):
-        dados = decrypt_token(st.session_state.token)
-        exp = datetime.datetime.fromisoformat(dados["expiration_date"]) - datetime.timedelta(hours=3)
-        st.markdown(f"**Token expira às:** {exp.strftime('%H:%M:%S')}")
-        st.code(st.session_state.token, language="text")
+# Geração automática de token
+if auth_user and sftp_ok:
+    st.session_state.token = gerar_token(user, secret, TOKEN_EXPIRATION_SECONDS)
+    token_data = decrypt_token(st.session_state.token)
+    exp = datetime.datetime.fromisoformat(token_data["expiration_date"]) - datetime.timedelta(hours=3)
+    st.sidebar.markdown(f"**Token expira às:** {exp.strftime('%H:%M:%S')}")
+    st.sidebar.code(st.session_state.token, language="text")
+else:
+    st.session_state.token = None
 
-    st.markdown("---")
-    arquivo = st.file_uploader("Selecionar Arquivo para Upload")
-    enviar = st.button("Executar Upload Seguro")
+# Indicadores visuais
+st.sidebar.markdown("---")
+col1, col2, col3 = st.sidebar.columns(3)
+col1.markdown(f"**Usuário:** {'✅' if valid_email else '❌'}")
+col2.markdown(f"**Login:** {'✅' if auth_user else '❌'}")
+col3.markdown(f"**Túnel:** {'🟢' if sftp_ok else '🔴'}")
+if st.session_state.get("token"):
+    col_status = st.sidebar.columns(1)[0]
+    if token_expirado(st.session_state.token):
+        col_status.markdown("**Token:** 🔴 Expirado")
+    else:
+        col_status.markdown("**Token:** 🟢 Válido")
+
+st.sidebar.markdown("---")
+arquivo = st.file_uploader("Selecionar Arquivo para Upload")
+enviar = st.button("Executar Upload Seguro")
 
 status_area = st.empty()
 progress_bar = st.progress(0)
@@ -168,7 +161,7 @@ log_area = st.empty()
 
 if enviar:
     if not st.session_state.get("token"):
-        status_area.error("Token não gerado. Autentique-se primeiro.")
+        status_area.error("Token não gerado ou inválido.")
     elif not arquivo:
         status_area.error("Nenhum arquivo selecionado.")
     elif token_expirado(st.session_state.token):
