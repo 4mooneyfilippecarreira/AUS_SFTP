@@ -19,10 +19,10 @@ from typing import Dict, Union
 st.set_page_config(page_title="HYPERsec | Upload Seguro", layout="wide", page_icon="🔒")
 st.markdown("""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
 
         html, body, [class*="css"] {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Montserrat', Montserrat;
         }
 
         body { background-color: #0F1117; color: #E0E0E0; }
