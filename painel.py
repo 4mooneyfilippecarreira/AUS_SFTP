@@ -141,8 +141,8 @@ else:
 # Indicadores visuais
 st.sidebar.markdown("---")
 col1, col2, col3 = st.sidebar.columns(3)
-col2.markdown(f"**Login:** {'✅' if auth_user else '❌'}")
-col3.markdown(f"**Túnel:** {'✅' if sftp_ok else '❌'}")
+col1.markdown(f"**Login:** {'✅' if auth_user else '❌'}")
+col2.markdown(f"**Túnel:** {'✅' if sftp_ok else '❌'}")
 if st.session_state.get("token"):
     col_status = st.sidebar.columns(1)[0]
     if token_expirado(st.session_state.token):
