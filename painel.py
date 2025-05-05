@@ -14,6 +14,9 @@ import re
 import logging
 from typing import Dict, Union
 
+
+
+st.set_option("server.maxUploadSize", 1024)
 # === ESTILO PROFISSIONAL === #
 st.set_page_config(page_title="HYPERsec | Upload Seguro", layout="wide", page_icon="🔒")
 st.markdown("""
