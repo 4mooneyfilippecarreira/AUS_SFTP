@@ -131,7 +131,7 @@ def sftp_fileupload(username: str, password: str, local_path: str, remote_path: 
         return False
 
 # === INTERFACE === #
-st.title("HYPERsec SYSTEM")
+st.title("H.Y.P.E.R.sec SYSTEM")
 st.markdown("### Sistema de Transmissão Segura com Criptografia de Arquivos")
 
 with st.sidebar:
