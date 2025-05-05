@@ -141,15 +141,14 @@ else:
 # Indicadores visuais
 st.sidebar.markdown("---")
 col1, col2, col3 = st.sidebar.columns(3)
-col1.markdown(f"**Usuário:** {'✅' if valid_email else '❌'}")
 col2.markdown(f"**Login:** {'✅' if auth_user else '❌'}")
-col3.markdown(f"**Túnel:** {'🟢' if sftp_ok else '🔴'}")
+col3.markdown(f"**Túnel:** {'✅' if sftp_ok else '❌'}")
 if st.session_state.get("token"):
     col_status = st.sidebar.columns(1)[0]
     if token_expirado(st.session_state.token):
-        col_status.markdown("**Token:** 🔴 Expirado")
+        col_status.markdown("**Token:** ❌ Expirado")
     else:
-        col_status.markdown("**Token:** 🟢 Válido")
+        col_status.markdown("**Token:** ✅ Válido")
 
 st.sidebar.markdown("---")
 arquivo = st.file_uploader("Selecionar Arquivo para Upload")
